@@ -1,0 +1,12 @@
+1693:              <div className="bg-[#feeaeb] dark:bg-[#2c1516] border border-red-200 dark:border-red-900/50 rounded-card p-5 sm:p-6 shadow-soft text-start" id="sheet-integration-error-banner">
+1695:                  <div className="p-3 bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 rounded-2xl shrink-0">
+1699:                    <h3 className="text-sm sm:text-base font-bold text-red-700 dark:text-red-400">
+1702:                    <p className="text-xs sm:text-sm text-red-900 dark:text-red-300 font-medium font-sans">
+1706:                      <div className="bg-red-50/50 dark:bg-red-950/30 border border-red-100 dark:border-red-950/50 rounded-xl p-3 font-mono text-[11px] text-red-800 dark:text-red-400 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+1713:                      <div className="text-xs space-y-1.5 text-neutral-700 dark:text-neutral-300 pt-1.5 border-t border-red-200/50 dark:border-red-900/30">
+1714:                        <span className="font-bold text-red-800 dark:text-red-400 block mb-1">
+1730:                          <code className="block bg-neutral-100 dark:bg-neutral-800 p-2 rounded mt-1 font-mono text-[10px] text-neutral-800 dark:text-neutral-200">
+2439:                <span className="bg-primary/20 text-black dark:text-white font-bold text-xs px-2.5 py-0.5 rounded-full font-sans">
+2489:                        <span className="bg-primary-fixed-dim/20 text-black dark:text-white font-black text-[10px] font-sans px-2.5 py-1 rounded">
+2913:                        <div className="bg-emerald-50/40 dark:bg-emerald-950/20 p-2.5 text-center border-t border-dashed border-emerald-100 dark:border-emerald-950/40 flex items-center justify-center gap-1.5 text-[10px] text-emerald-600 dark:text-white font-medium">
+3882:                        <span className="text-[#007d54] dark:text-[#10b981] font-display font-black text-lg sm:text-xl tracking-wider">

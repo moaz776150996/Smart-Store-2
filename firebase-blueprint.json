@@ -1,0 +1,86 @@
+{
+  "entities": {
+    "StoreSettings": {
+      "title": "StoreSettings",
+      "description": "Store contact and local branding settings",
+      "type": "object",
+      "properties": {
+        "storeNameAr": { "type": "string" },
+        "storeNameEn": { "type": "string" },
+        "storePhone": { "type": "string" },
+        "storeEmail": { "type": "string" },
+        "storeAddressAr": { "type": "string" },
+        "storeAddressEn": { "type": "string" }
+      },
+      "required": ["storeNameAr", "storeNameEn", "storePhone", "storeEmail", "storeAddressAr", "storeAddressEn"]
+    },
+    "StoreCoupons": {
+      "title": "StoreCoupons",
+      "description": "Active promotional discount coupon codes list",
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array"
+        }
+      },
+      "required": ["list"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer digital invoice records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "customerName": { "type": "string" },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "total": { "type": "number" },
+        "shippingDetails": { "type": "object" },
+        "status": { "type": "string" },
+        "trackingNumber": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "date": { "type": "string" }
+      },
+      "required": ["customerName", "items", "subtotal", "discount", "total", "shippingDetails", "status", "createdAt", "date"]
+    },
+    "SellInvoice": {
+      "title": "SellInvoice",
+      "description": "Sales consignment invoices submitted by sellers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "itemName": { "type": "string" },
+        "sellerName": { "type": "string" },
+        "phone": { "type": "string" },
+        "price": { "type": "string" },
+        "location": { "type": "string" },
+        "reason": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "itemName", "sellerName", "phone", "price", "location", "reason", "date", "status", "customerEmail"]
+    }
+  },
+  "firestore": {
+    "store/settings": {
+      "schema": "StoreSettings",
+      "description": "Singleton store general information"
+    },
+    "store/coupons": {
+      "schema": "StoreCoupons",
+      "description": "Promo and coupon list"
+    },
+    "orders/{orderId}": {
+      "schema": "Order",
+      "description": "Client order files"
+    },
+    "sellInvoices/{invoiceId}": {
+      "schema": "SellInvoice",
+      "description": "Seller items submitted for listing"
+    }
+  }
+}

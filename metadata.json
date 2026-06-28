@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Smart Store 2 | 2 متجر سمارت",
+  "description": "An elegant, integrated emerald Bento-style luxury e-commerce store with interactive product layouts, automated cart management, checkout flows, tracking, and account preferences.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

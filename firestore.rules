@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'moaathbakhrish@gmail.com' ||
+        request.auth.token.email == 'moaath.owner@gmail.com'
+      );
+    }
+
+    // Store settings and coupons - accessible by all clients to read and write (for initialization)
+    match /store/{documentId} {
+      allow read, write: if true;
+    }
+
+    // Orders collection - anyone can create/read orders, admins can fully manage them
+    match /orders/{orderId} {
+      allow read, write: if true;
+    }
+
+    // Sell Invoices collection - anyone can create/read, client-side filtering restricts views
+    match /sellInvoices/{invoiceId} {
+      allow read, write: if true;
+    }
+  }
+}
