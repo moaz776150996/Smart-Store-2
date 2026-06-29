@@ -867,7 +867,13 @@ export default function App() {
       if (data && Array.isArray(data) && data.length > 0) {
         try {
           setSheetError(null);
-          const mapped: Product[] = data.map((item: any, index: number) => {
+          const validData = data.filter((item: any) => {
+            if (!item) return false;
+            const name = String(item.name || item.nameEn || item.nameAr || '').trim();
+            const image = String(item.image || '').trim();
+            return name.length > 0 && image.length > 0;
+          });
+          const mapped: Product[] = validData.map((item: any, index: number) => {
             const priceStr = item.price !== undefined && item.price !== null ? String(item.price).trim() : '';
             const salePriceStr = item.sale_price !== undefined && item.sale_price !== null ? String(item.sale_price).trim() : '';
             const hasOffer = salePriceStr.length > 0;
@@ -938,7 +944,12 @@ export default function App() {
   }, [lang]);
 
   const latestProducts = useMemo(() => {
-    return [...products].sort((a, b) => Number(b.id) - Number(a.id));
+    const validProducts = products.filter(prod => {
+      const hasName = (prod.nameAr && prod.nameAr.trim()) || (prod.nameEn && prod.nameEn.trim());
+      const hasImage = prod.image && prod.image.trim();
+      return hasName && hasImage;
+    });
+    return [...validProducts].sort((a, b) => Number(b.id) - Number(a.id));
   }, [products]);
 
   // Synchronous carousel interval rotation every 3 seconds for newly added products
@@ -1374,6 +1385,10 @@ export default function App() {
   // Searching query matches
   const filteredProducts = useMemo(() => {
     return products.filter(prod => {
+      const hasName = (prod.nameAr && prod.nameAr.trim()) || (prod.nameEn && prod.nameEn.trim());
+      const hasImage = prod.image && prod.image.trim();
+      if (!hasName || !hasImage) return false;
+
       const matchQuery = 
         prod.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
         prod.nameAr.includes(searchQuery) ||
@@ -1388,7 +1403,12 @@ export default function App() {
 
   // Search page products (all products sorted newest first, filtered if query exists)
   const searchPageProducts = useMemo(() => {
-    const sorted = [...products].sort((a, b) => Number(b.id) - Number(a.id));
+    const validProducts = products.filter(prod => {
+      const hasName = (prod.nameAr && prod.nameAr.trim()) || (prod.nameEn && prod.nameEn.trim());
+      const hasImage = prod.image && prod.image.trim();
+      return hasName && hasImage;
+    });
+    const sorted = [...validProducts].sort((a, b) => Number(b.id) - Number(a.id));
     if (!searchQuery.trim()) {
       return sorted;
     }
@@ -2771,7 +2791,11 @@ export default function App() {
 
         {/* SPECIAL OFFERS TAB */}
         {currentTab === 'account' && !isCheckingOut && (() => {
-          const offerProducts = products.filter(p => p.sale_price && String(p.sale_price).trim().length > 0);
+          const offerProducts = products.filter(p => {
+            const hasName = (p.nameAr && p.nameAr.trim()) || (p.nameEn && p.nameEn.trim());
+            const hasImage = p.image && p.image.trim();
+            return p.sale_price && String(p.sale_price).trim().length > 0 && hasName && hasImage;
+          });
           return (
             <div className="space-y-8 max-w-5xl mx-auto" id="special-offers-tab">
               
