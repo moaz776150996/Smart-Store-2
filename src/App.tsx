@@ -817,19 +817,57 @@ export default function App() {
   }, [customerOrders, orders]);
 
   useEffect(() => {
-    setIsLoadingProducts(true);
-    fetch('/api/products')
-      .then(res => res.json())
-      .then((data: any) => {
-        if (data && data.success === false) {
+    async function loadProducts() {
+      setIsLoadingProducts(true);
+      let data: any = null;
+      let fetchError: any = null;
+
+      // 1. First, attempt to fetch from the local server proxy API route
+      try {
+        console.log('Attempting to fetch products from local API route: /api/products');
+        const res = await fetch('/api/products');
+        if (!res.ok) {
+          throw new Error(`Local API response error: Status ${res.status}`);
+        }
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error('Local API returned non-JSON content. Usually indicates server is not running on serverless hosting.');
+        }
+        data = await res.json();
+      } catch (err: any) {
+        fetchError = err;
+        console.error('Error fetching from /api/products:', err);
+      }
+
+      // 2. If local fetch failed or returned invalid response, fallback to fetching directly from Google Sheets over secure HTTPS
+      if (!data || (data && data.success === false)) {
+        try {
+          console.log('Falling back to secure direct HTTPS fetch from Google Sheets Apps Script...');
+          const directUrl = 'https://script.google.com/macros/s/AKfycbxJBtIIjNMX_bixahUQWOjZ1zdOD3K_B0_Cn4fJxCfj7VVn2enEbpWrc9K3LDyUwyn2qQ/exec';
+          const res = await fetch(directUrl);
+          if (!res.ok) {
+            throw new Error(`Direct Google Sheets fetch error: Status ${res.status}`);
+          }
+          const text = await res.text();
+          const parsed = JSON.parse(text);
+          data = Array.isArray(parsed) ? parsed : (parsed.data || parsed.products || []);
+          console.log('Successfully fetched products directly from Google Sheets API over HTTPS:', data.length, 'products found.');
+        } catch (fallbackErr: any) {
+          console.error('Fallback direct Google Sheets fetch failed:', fallbackErr);
+          // If both failed, we set the sheet error state with diagnostic info
           setSheetError({
-            message: data.error,
-            details: data.details,
-            instructions: data.instructions
+            message: lang === 'ar' ? 'فشل الاتصال بجدول بيانات جوجل' : 'Failed to connect to Google Sheets',
+            details: `Local error: ${fetchError?.message || String(fetchError)}. Direct error: ${fallbackErr?.message || String(fallbackErr)}`,
+            instructions: lang === 'ar' ? 'يرجى التحقق من اتصال الإنترنت وإعدادات Apps Script' : 'Please check your internet connection and Apps Script setup'
           });
-        } else if (Array.isArray(data) && data.length > 0) {
+        }
+      }
+
+      // 3. Process and map the products data
+      if (data && Array.isArray(data) && data.length > 0) {
+        try {
           setSheetError(null);
-          const mapped: Product[] = data.map((item, index) => {
+          const mapped: Product[] = data.map((item: any, index: number) => {
             const priceStr = item.price !== undefined && item.price !== null ? String(item.price).trim() : '';
             const salePriceStr = item.sale_price !== undefined && item.sale_price !== null ? String(item.sale_price).trim() : '';
             const hasOffer = salePriceStr.length > 0;
@@ -841,7 +879,7 @@ export default function App() {
               const imageStr = String(item.image || '').trim();
               imageUrls = imageStr
                 .split(/[\r\n,\s]+/)
-                .map(s => {
+                .map((s: string) => {
                   let cleaned = s.trim().replace(/^["'`\s\[\(]+|["'`\s\]\)]+$/g, '');
                   if (/^https?:\/\//i.test(cleaned)) {
                     cleaned = cleaned.replace(/^https?:\/\//i, (match) => match.toLowerCase());
@@ -849,7 +887,7 @@ export default function App() {
                   return cleaned;
                 })
                 .filter(Boolean)
-                .filter(u => u.toLowerCase().startsWith('http'));
+                .filter((u: string) => u.toLowerCase().startsWith('http'));
             }
             const primaryImage = imageUrls[0] || '';
             const specsStr = item.specs !== undefined && item.specs !== null ? String(item.specs).trim() : '';
@@ -882,15 +920,22 @@ export default function App() {
             ...PRODUCTS.filter(p => !dynamicIds.has(p.id))
           ];
           setProducts(combined);
+        } catch (processErr: any) {
+          console.error('Error processing fetched products data:', processErr);
         }
-      })
-      .catch(err => {
-        console.error('Error fetching dynamic products:', err);
-      })
-      .finally(() => {
-        setIsLoadingProducts(false);
-      });
-  }, []);
+      } else if (data && data.success === false) {
+        setSheetError({
+          message: data.error || 'API Error',
+          details: data.details,
+          instructions: data.instructions
+        });
+      }
+
+      setIsLoadingProducts(false);
+    }
+
+    loadProducts();
+  }, [lang]);
 
   const latestProducts = useMemo(() => {
     return [...products].sort((a, b) => Number(b.id) - Number(a.id));
