@@ -45,7 +45,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { Product, CartItem, ShippingDetails, Order, Language, Currency } from './types';
 import { PRODUCTS, DICTIONARY, HERO_IMAGE } from './data';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { onAuthStateChanged, User as FirebaseUser, getRedirectResult } from 'firebase/auth';
 import { collection, getDocs, doc, updateDoc, setDoc, getDoc, addDoc, query, where, deleteDoc } from 'firebase/firestore';
 import { auth, db, signInWithGoogle, signOutUser } from './lib/firebase';
 
@@ -409,6 +409,18 @@ export default function App() {
 
   // Load and subscribe to Firebase Auth state
   useEffect(() => {
+    // Handle redirect result for mobile/standalone PWA sign-ins
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          console.log("Authenticated via redirect successfully:", result.user);
+          setFirebaseUser(result.user);
+        }
+      })
+      .catch((error) => {
+        console.error("Error processing Google redirect login:", error);
+      });
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setFirebaseUser(currentUser);
       if (currentUser) {
