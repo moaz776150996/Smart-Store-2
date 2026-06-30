@@ -1772,7 +1772,7 @@ export default function App() {
                       <div className={`p-2 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                         isCurrent ? 'bg-primary text-white' : 'bg-surface border border-outline-variant/30 text-charcoal/80 group-hover:bg-primary/10 group-hover:text-primary'
                       }`}>
-                        <span className="material-symbols-outlined text-[18px] select-none leading-none">{meta.icon}</span>
+                        <span className="material-symbols-outlined text-[18px] select-none leading-none notranslate" translate="no">{meta.icon}</span>
                       </div>
 
                       {/* Details block */}
@@ -1795,7 +1795,7 @@ export default function App() {
                       </div>
 
                       {/* Elite tiny chevron pointer */}
-                      <span className={`material-symbols-outlined text-sm text-muted-gray/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all select-none rtl:rotate-180`}>
+                      <span className={`material-symbols-outlined text-sm text-muted-gray/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all select-none rtl:rotate-180 notranslate`} translate="no">
                         chevron_right
                       </span>
                     </button>
@@ -1834,7 +1834,7 @@ export default function App() {
                   className="p-2.5 rounded-xl bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 flex items-center gap-2.5 cursor-pointer transition-all"
                 >
                   <div className="w-7 h-7 rounded-full bg-red-500/10 text-red-600 flex items-center justify-center font-bold text-xs">
-                    <span className="material-symbols-outlined text-[16px] select-none">local_offer</span>
+                    <span className="material-symbols-outlined text-[16px] select-none notranslate" translate="no">local_offer</span>
                   </div>
                   <div className="flex-1 min-w-0 text-start">
                     <h5 className="font-bold text-red-600 text-[11px] truncate leading-tight">
@@ -1844,7 +1844,7 @@ export default function App() {
                       {lang === 'ar' ? 'تصفح عروض التخفيضات المميزة' : 'Explore luxury items on discount'}
                     </p>
                   </div>
-                  <span className="material-symbols-outlined text-[14px] text-muted-gray select-none rtl:rotate-180">
+                  <span className="material-symbols-outlined text-[14px] text-muted-gray select-none rtl:rotate-180 notranslate" translate="no">
                     arrow_forward_ios
                   </span>
                 </div>
@@ -1872,7 +1872,7 @@ export default function App() {
             title={lang === 'ar' ? 'قائمة الأقسام والمعارض' : 'Category Menu'}
             id="burger-menu-btn"
           >
-            <span className="material-symbols-outlined select-none text-[26px]">menu</span>
+            <span className="material-symbols-outlined select-none text-[26px] notranslate" translate="no">menu</span>
           </button>
           <h1 
             onClick={() => { setCurrentTab('shop'); setIsCheckingOut(false); }}
@@ -1900,14 +1900,14 @@ export default function App() {
             onClick={() => setCurrentTab('search')}
             className={`hover:opacity-80 flex items-center justify-center p-1 rounded-full ${currentTab === 'search' ? 'text-primary' : 'text-on-surface-variant'}`}
           >
-            <span className="material-symbols-outlined select-none">search</span>
+            <span className="material-symbols-outlined select-none notranslate" translate="no">search</span>
           </button>
           {/* Shopping Cart Button with dynamic count */}
           <button 
             onClick={() => setIsCartOpen(true)}
             className="text-on-surface-variant hover:opacity-80 relative flex items-center justify-center p-1"
           >
-            <span className="material-symbols-outlined select-none">shopping_cart</span>
+            <span className="material-symbols-outlined select-none notranslate" translate="no">shopping_cart</span>
             {cart.length > 0 && (
               <span className="absolute -top-1 -right-1 bg-primary text-pure-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                 {cart.reduce((sum, item) => sum + item.quantity, 0)}
@@ -1926,12 +1926,12 @@ export default function App() {
           >
             {theme === 'light' ? (
               <>
-                <span className="material-symbols-outlined text-[16px] sm:text-[18px] select-none text-amber-600 leading-none">light_mode</span>
+                <span className="material-symbols-outlined text-[16px] sm:text-[18px] select-none text-amber-600 leading-none notranslate" translate="no">light_mode</span>
                 <span className="text-[11px] sm:text-[12px] font-medium leading-none select-none">{lang === 'ar' ? 'نهاري' : 'Day'}</span>
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined text-[16px] sm:text-[18px] select-none text-amber-400 leading-none">dark_mode</span>
+                <span className="material-symbols-outlined text-[16px] sm:text-[18px] select-none text-amber-400 leading-none notranslate" translate="no">dark_mode</span>
                 <span className="text-[11px] sm:text-[12px] font-medium leading-none select-none">{lang === 'ar' ? 'ليلي' : 'Night'}</span>
               </>
             )}
@@ -1950,7 +1950,7 @@ export default function App() {
               <div className="bg-[#feeaeb] dark:bg-[#2c1516] border border-red-200 dark:border-red-900/50 rounded-card p-5 sm:p-6 shadow-soft text-start" id="sheet-integration-error-banner">
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 rounded-2xl shrink-0">
-                    <span className="material-symbols-outlined select-none text-[24px]">warning</span>
+                    <span className="material-symbols-outlined select-none text-[24px] notranslate" translate="no">warning</span>
                   </div>
                   <div className="space-y-2 flex-1">
                     <h3 className="text-sm sm:text-base font-bold text-red-700 dark:text-red-400">
@@ -2820,7 +2820,7 @@ export default function App() {
               <div className="bg-pure-white rounded-card p-6 sm:p-8 border border-surface-container-highest shadow-soft">
                 <div className="flex items-center justify-between pb-4 border-b border-surface-container-high mb-6">
                   <h3 className="font-bold text-charcoal text-base flex items-center gap-2">
-                    <span className="material-symbols-outlined text-red-600 select-none">local_offer</span>
+                    <span className="material-symbols-outlined text-red-600 select-none notranslate" translate="no">local_offer</span>
                     <span>{lang === 'ar' ? 'القطع المخفضة الحالية' : 'Current Curated Deals'}</span>
                   </h3>
                   <span className="font-sans text-xs font-bold px-3 py-1 rounded-full bg-red-100 text-red-600">
@@ -2831,7 +2831,7 @@ export default function App() {
                 {offerProducts.length === 0 ? (
                   <div className="text-center py-16 space-y-4">
                     <div className="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto">
-                      <span className="material-symbols-outlined text-[32px] select-none">local_offer</span>
+                      <span className="material-symbols-outlined text-[32px] select-none notranslate" translate="no">local_offer</span>
                     </div>
                     <div className="space-y-1">
                       <h4 className="font-bold text-charcoal text-sm">{lang === 'ar' ? 'لا توجد عروض ترويجية نشطة' : 'No Active Offers'}</h4>
@@ -2890,7 +2890,7 @@ export default function App() {
                               }}
                               className="flex-1 bg-pure-white border border-outline-variant hover:bg-surface text-charcoal py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors select-none cursor-pointer"
                             >
-                              <span className="material-symbols-outlined text-[14px] select-none">visibility</span>
+                              <span className="material-symbols-outlined text-[14px] select-none notranslate" translate="no">visibility</span>
                               <span>{lang === 'ar' ? 'التفاصيل' : 'Details'}</span>
                             </button>
                             
@@ -2900,7 +2900,7 @@ export default function App() {
                               }}
                               className="flex-1 bg-[#007d54] hover:bg-[#005235] text-white py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors select-none cursor-pointer"
                             >
-                              <span className="material-symbols-outlined text-[14px] select-none">shopping_cart</span>
+                              <span className="material-symbols-outlined text-[14px] select-none notranslate" translate="no">shopping_cart</span>
                               <span>{lang === 'ar' ? 'شراء العرض' : 'Buy Offer'}</span>
                             </button>
                           </div>
@@ -4010,7 +4010,7 @@ export default function App() {
                   onClick={() => setIsFullScreenImageOpen(true)}
                   className="w-full flex items-center justify-center gap-2 bg-surface-container/30 hover:bg-surface-container py-3 rounded-xl text-primary font-bold text-sm transition-colors border border-outline-variant/30 active:scale-[0.98]"
                 >
-                  <span className="material-symbols-outlined text-[20px]">fullscreen</span>
+                  <span className="material-symbols-outlined text-[20px] notranslate" translate="no">fullscreen</span>
                   <span>{lang === 'ar' ? 'عرض جميع الصور' : 'View all images'}</span>
                 </button>
 
@@ -4083,7 +4083,7 @@ export default function App() {
                       }}
                       className="text-[#007d54] animate-bounce flex items-center justify-center opacity-90 cursor-pointer pointer-events-auto border-none bg-transparent focus:outline-none"
                     >
-                      <span className="material-symbols-outlined text-[32px] select-none">keyboard_double_arrow_down</span>
+                      <span className="material-symbols-outlined text-[32px] select-none notranslate" translate="no">keyboard_double_arrow_down</span>
                     </button>
                   </motion.div>
                 )}
@@ -4457,7 +4457,7 @@ export default function App() {
           }`}
           id="tab-shop"
         >
-          <span className="material-symbols-outlined select-none" style={{ fontVariationSettings: currentTab === 'shop' ? "'FILL' 1" : "'FILL' 0" }}>storefront</span>
+          <span className="material-symbols-outlined select-none notranslate" translate="no" style={{ fontVariationSettings: currentTab === 'shop' ? "'FILL' 1" : "'FILL' 0" }}>storefront</span>
           <span className="font-label-sm text-[11px] font-medium leading-[1.2] mt-1.5 text-center px-1">{lang === 'ar' ? 'المتجر' : 'Shop'}</span>
         </button>
 
@@ -4468,7 +4468,7 @@ export default function App() {
           }`}
           id="tab-search"
         >
-          <span className="material-symbols-outlined select-none" style={{ fontVariationSettings: currentTab === 'search' ? "'FILL' 1" : "'FILL' 0" }}>search</span>
+          <span className="material-symbols-outlined select-none notranslate" translate="no" style={{ fontVariationSettings: currentTab === 'search' ? "'FILL' 1" : "'FILL' 0" }}>search</span>
           <span className="font-label-sm text-[11px] font-medium leading-[1.2] mt-1.5 text-center px-1">{lang === 'ar' ? 'البحث' : 'Search'}</span>
         </button>
 
@@ -4479,7 +4479,7 @@ export default function App() {
           }`}
           id="tab-account"
         >
-          <span className="material-symbols-outlined select-none" style={{ fontVariationSettings: currentTab === 'account' ? "'FILL' 1" : "'FILL' 0" }}>local_offer</span>
+          <span className="material-symbols-outlined select-none notranslate" translate="no" style={{ fontVariationSettings: currentTab === 'account' ? "'FILL' 1" : "'FILL' 0" }}>local_offer</span>
           <span className="font-label-sm text-[11px] font-medium leading-[1.2] mt-1.5 text-center px-1">{lang === 'ar' ? 'العروض' : 'Offers'}</span>
         </button>
 
@@ -4490,7 +4490,7 @@ export default function App() {
           }`}
           id="tab-orders"
         >
-          <span className="material-symbols-outlined select-none" style={{ fontVariationSettings: currentTab === 'orders' ? "'FILL' 1" : "'FILL' 0" }}>diamond</span>
+          <span className="material-symbols-outlined select-none notranslate" translate="no" style={{ fontVariationSettings: currentTab === 'orders' ? "'FILL' 1" : "'FILL' 0" }}>diamond</span>
           <span className="font-label-sm text-[11px] font-medium leading-[1.2] mt-1.5 text-center px-1">{lang === 'ar' ? 'بيع سلعتك' : 'Sell'}</span>
         </button>
 
@@ -4501,7 +4501,7 @@ export default function App() {
           }`}
           id="tab-history"
         >
-          <span className="material-symbols-outlined select-none" style={{ fontVariationSettings: currentTab === 'history' ? "'FILL' 1" : "'FILL' 0" }}>receipt_long</span>
+          <span className="material-symbols-outlined select-none notranslate" translate="no" style={{ fontVariationSettings: currentTab === 'history' ? "'FILL' 1" : "'FILL' 0" }}>receipt_long</span>
           <span className="font-label-sm text-[11px] font-medium leading-[1.2] mt-1.5 text-center px-1">{lang === 'ar' ? 'مشترياتي' : 'Purchases'}</span>
         </button>
 
@@ -4512,7 +4512,7 @@ export default function App() {
           }`}
           id="tab-profile"
         >
-          <span className="material-symbols-outlined select-none" style={{ fontVariationSettings: currentTab === 'profile' ? "'FILL' 1" : "'FILL' 0" }}>person</span>
+          <span className="material-symbols-outlined select-none notranslate" translate="no" style={{ fontVariationSettings: currentTab === 'profile' ? "'FILL' 1" : "'FILL' 0" }}>person</span>
           <span className="font-label-sm text-[11px] font-medium leading-[1.2] mt-1.5 text-center px-1">{lang === 'ar' ? 'حسابي' : 'Account'}</span>
         </button>
       </nav>
