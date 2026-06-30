@@ -3186,7 +3186,7 @@ export default function App() {
         {currentTab === 'profile' && !isCheckingOut && (() => {
           const isUserAdmin = isAdmin || isSimulatingAdmin;
           return (
-            <div className="space-y-8 max-w-5xl mx-auto p-4 pb-20 text-start" id="profile-tab-section" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+            <div className="space-y-8 max-w-5xl mx-auto p-4 pb-16 text-start" id="profile-tab-section" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
               
               {/* Profile Header Card */}
               <div className="bg-pure-white rounded-card p-6 sm:p-8 border border-surface-container-highest shadow-soft">
@@ -3717,11 +3717,22 @@ export default function App() {
                       <span>{lang === 'ar' ? 'حفظ معلومات وإعدادات المتجر في فايرستور' : 'Save Store Details in Firestore'}</span>
                     </button>
                   </div>
-
-
-
                 </div>
               )}
+
+              {/* Elegant Footer / Copyrights & Developer info */}
+              <div className="pt-10 mt-6 border-t border-outline-variant/40 text-center space-y-1.5" id="profile-footer-copyright">
+                <p className="text-[11px] text-muted-gray font-medium">
+                  {lang === 'ar' 
+                    ? 'جميع الحقوق محفوظة © ٢٠٢٦' 
+                    : 'All Rights Reserved © 2026'}
+                </p>
+                <p className="text-[10px] text-[#007d54] dark:text-[#10b981] font-semibold tracking-wide">
+                  {lang === 'ar' 
+                    ? 'تم التطوير بواسطة : معاذ باخريش' 
+                    : 'Developed by: Moaath Bakhrish'}
+                </p>
+              </div>
 
             </div>
           );
