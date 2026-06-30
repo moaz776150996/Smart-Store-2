@@ -35,7 +35,12 @@ import {
   PhoneCall,
   LogOut,
   Sun,
-  Moon
+  Moon,
+  Instagram,
+  Facebook,
+  Send,
+  MessageCircle,
+  Video
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product, CartItem, ShippingDetails, Order, Language, Currency } from './types';
@@ -3296,10 +3301,10 @@ export default function App() {
                 </div>
 
                 {/* Grid for Store Info and dynamic config */}
-                <div className="mt-6 max-w-xl mx-auto">
+                <div className="mt-6 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6" id="store-profile-social-grid">
                   
                   {/* Store Details Card */}
-                  <div className="bg-surface rounded-xl p-5 border border-outline-variant/60 flex flex-col justify-between">
+                  <div className="bg-surface rounded-xl p-5 border border-outline-variant/60 flex flex-col justify-between" id="store-details-card">
                     <div>
                       <h4 className="font-bold text-charcoal text-sm flex items-center gap-2 mb-4">
                         <Store className="w-4 h-4 text-[#007d54]" />
@@ -3351,6 +3356,142 @@ export default function App() {
                         </svg>
                         <span>{lang === 'ar' ? 'تواصل مباشر مع الدعم الفني (واتساب)' : 'Direct WhatsApp Support'}</span>
                       </a>
+                    </div>
+                  </div>
+
+                  {/* Store Social Accounts Card */}
+                  <div className="bg-surface rounded-xl p-5 border border-outline-variant/60 flex flex-col justify-between" id="store-social-accounts-card">
+                    <div>
+                      <h4 className="font-bold text-charcoal text-sm flex items-center gap-2 mb-4">
+                        <Globe className="w-4 h-4 text-[#007d54]" />
+                        <span>{lang === 'ar' ? 'حسابات المتجر الرسمية' : 'Official Store Accounts'}</span>
+                      </h4>
+                      
+                      <p className="text-[11px] text-muted-gray mb-4 leading-relaxed">
+                        {lang === 'ar' 
+                          ? 'تابعونا على منصات التواصل الاجتماعي الرسمية لتبقوا على اطلاع بأحدث العروض والمنتجات الحصرية.' 
+                          : 'Follow us on our official social channels to stay updated with the latest trends and exclusive offers.'}
+                      </p>
+
+                      <div className="space-y-2.5">
+                        {/* Telegram */}
+                        <a 
+                          href="https://t.me/smart_store_one1"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between p-2.5 rounded-xl bg-pure-white border border-surface-container-high hover:border-[#229ED9]/50 hover:shadow-sm transition-all group cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-[#e8f5fd] text-[#229ED9] flex items-center justify-center group-hover:bg-[#229ED9] group-hover:text-white transition-colors shrink-0">
+                              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+                                <path d="M22 2L1 11.5l7.5 3L18 6l-8 9.5 9 5.5z" />
+                              </svg>
+                            </div>
+                            <div className="text-start">
+                              <p className="font-bold text-charcoal text-[11px]">{lang === 'ar' ? 'قناة التليجرام' : 'Telegram Channel'}</p>
+                              <p className="text-[9px] text-muted-gray font-mono">@smart_store_one1</p>
+                            </div>
+                          </div>
+                          <span className="text-muted-gray text-[10px] font-semibold group-hover:text-[#229ED9] transition-colors flex items-center gap-0.5">
+                            <span>{lang === 'ar' ? 'انضم الآن' : 'Join'}</span>
+                            <span className="font-sans">&rarr;</span>
+                          </span>
+                        </a>
+
+                        {/* Instagram */}
+                        <a 
+                          href="https://www.instagram.com/samert_1?igsh=MTcyYWR4MXB0aXow"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between p-2.5 rounded-xl bg-pure-white border border-surface-container-high hover:border-[#e1306c]/50 hover:shadow-sm transition-all group cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-[#fff0f3] text-[#e1306c] flex items-center justify-center group-hover:bg-gradient-to-tr group-hover:from-[#f9ce34] group-hover:via-[#ee2a7b] group-hover:to-[#6228d7] group-hover:text-white transition-colors shrink-0">
+                              <Instagram className="w-4 h-4" />
+                            </div>
+                            <div className="text-start">
+                              <p className="font-bold text-charcoal text-[11px]">{lang === 'ar' ? 'حساب الإنستغرام' : 'Instagram Account'}</p>
+                              <p className="text-[9px] text-muted-gray font-mono">@samert_1</p>
+                            </div>
+                          </div>
+                          <span className="text-muted-gray text-[10px] font-semibold group-hover:text-[#e1306c] transition-colors flex items-center gap-0.5">
+                            <span>{lang === 'ar' ? 'متابعة' : 'Follow'}</span>
+                            <span className="font-sans">&rarr;</span>
+                          </span>
+                        </a>
+
+                        {/* TikTok */}
+                        <a 
+                          href="https://www.tiktok.com/@smartstore922"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between p-2.5 rounded-xl bg-pure-white border border-surface-container-high hover:border-black/30 hover:shadow-sm transition-all group cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 text-black flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors shrink-0">
+                              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+                                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.02 1.63 4.19 1.14 1.25 2.74 1.94 4.41 2.05v3.91c-1.39-.12-2.75-.68-3.83-1.58-.6-.5-1.1-1.12-1.48-1.82v6.6c.07 1.84-.45 3.7-1.54 5.17-1.3 1.7-3.4 2.64-5.54 2.5-2.61-.13-5.02-1.78-6.1-4.14-1.16-2.5-.54-5.63 1.48-7.5 1.48-1.39 3.57-2.07 5.57-1.78v3.9c-.93-.16-1.92.08-2.6.76-.74.72-.94 1.86-.53 2.79.43 1 1.51 1.6 2.59 1.49.99-.05 1.85-.79 1.98-1.78.03-1.16.01-2.31.02-3.47V0z"/>
+                              </svg>
+                            </div>
+                            <div className="text-start">
+                              <p className="font-bold text-charcoal text-[11px]">{lang === 'ar' ? 'حساب التيك توك' : 'TikTok Account'}</p>
+                              <p className="text-[9px] text-muted-gray font-mono">@smartstore922</p>
+                            </div>
+                          </div>
+                          <span className="text-muted-gray text-[10px] font-semibold group-hover:text-black transition-colors flex items-center gap-0.5">
+                            <span>{lang === 'ar' ? 'مشاهدة' : 'Watch'}</span>
+                            <span className="font-sans">&rarr;</span>
+                          </span>
+                        </a>
+
+                        {/* Facebook */}
+                        <a 
+                          href="https://www.facebook.com/share/18VgRErfuZ/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between p-2.5 rounded-xl bg-pure-white border border-surface-container-high hover:border-[#1877F2]/50 hover:shadow-sm transition-all group cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-[#e7f3ff] text-[#1877F2] flex items-center justify-center group-hover:bg-[#1877F2] group-hover:text-white transition-colors shrink-0">
+                              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                              </svg>
+                            </div>
+                            <div className="text-start">
+                              <p className="font-bold text-charcoal text-[11px]">{lang === 'ar' ? 'صفحة الفيسبوك' : 'Facebook Page'}</p>
+                              <p className="text-[9px] text-muted-gray font-mono">samert_1</p>
+                            </div>
+                          </div>
+                          <span className="text-muted-gray text-[10px] font-semibold group-hover:text-[#1877F2] transition-colors flex items-center gap-0.5">
+                            <span>{lang === 'ar' ? 'إعجاب' : 'Like'}</span>
+                            <span className="font-sans">&rarr;</span>
+                          </span>
+                        </a>
+
+                        {/* WhatsApp Channel */}
+                        <a 
+                          href="https://whatsapp.com/channel/0029Vb40Ujp6GcGDDkBfW145"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between p-2.5 rounded-xl bg-pure-white border border-surface-container-high hover:border-[#25D366]/50 hover:shadow-sm transition-all group cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-[#e8fbf1] text-[#25D366] flex items-center justify-center group-hover:bg-[#25D366] group-hover:text-white transition-colors shrink-0">
+                              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+                                <path d="M12.004 2C6.48 2 2 6.48 2 12.004c0 1.764.457 3.48 1.325 5.004L2 22l5.124-1.316c1.472.801 3.13 1.236 4.88 1.236 5.524 0 10.004-4.48 10.004-10.004C22.008 6.48 17.528 2 12.004 2zm5.42 14.22c-.24.676-1.388 1.284-1.924 1.364-.488.072-1.108.108-1.784-.108-.432-.136-1-.316-1.684-.616-2.916-1.256-4.804-4.22-4.948-4.416-.144-.196-1.18-1.568-1.18-2.992 0-1.424.748-2.124 1.012-2.408.264-.284.58-.356.772-.356.192 0 .384.004.552.012.176.008.412-.064.644.492.24.576.816 1.992.888 2.136.072.144.12.312.024.504-.096.192-.144.312-.288.48-.144.168-.304.376-.436.504-.148.14-.304.296-.132.592.172.296.764 1.256 1.636 2.032.872.776 1.604 1.016 1.828 1.116.224.1.356.084.488-.068.132-.152.576-.668.732-.896.156-.228.312-.192.524-.112.216.08 1.368.644 1.604.76.236.116.392.172.448.268.056.096.056.556-.184 1.232z"/>
+                              </svg>
+                            </div>
+                            <div className="text-start">
+                              <p className="font-bold text-charcoal text-[11px]">{lang === 'ar' ? 'قناة الواتساب الرسمية' : 'Official WhatsApp Channel'}</p>
+                              <p className="text-[9px] text-muted-gray font-mono">{lang === 'ar' ? 'تابع الأخبار أولاً بأول' : 'Stay tuned live'}</p>
+                            </div>
+                          </div>
+                          <span className="text-muted-gray text-[10px] font-semibold group-hover:text-[#25D366] transition-colors flex items-center gap-0.5">
+                            <span>{lang === 'ar' ? 'متابعة' : 'Follow'}</span>
+                            <span className="font-sans">&rarr;</span>
+                          </span>
+                        </a>
+                      </div>
                     </div>
                   </div>
 
