@@ -35,22 +35,25 @@ const isStandalone = typeof window !== 'undefined' && (
   (window.navigator as any).standalone || 
   window.matchMedia('(display-mode: standalone)').matches
 );
-const isMobile = typeof window !== 'undefined' && (
-  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+const isWebView = typeof window !== 'undefined' && (
+  /wv|WebView|Android.*Version\/[0-9.]+/i.test(navigator.userAgent) ||
+  (window as any).Capacitor ||
+  (window as any).cordova
 );
 
 // Sign in with Google Popup or Redirect based on environment
 export async function signInWithGoogle() {
   try {
-    // Under stand-alone PWA, Webviews or Mobile environments, popups fail / get blocked
+    // Under stand-alone PWA or Webviews, popups fail / get blocked
     // or lose standard session context (blank page parent disconnect). 
-    // Therefore, if NOT in an iframe (which requires popup), and on mobile/standalone, use redirect.
-    if (!isIframe && (isMobile || isStandalone)) {
-      console.log("Mobile or standalone environment detected. Using signInWithRedirect for Google Sign-In.");
+    // Therefore, if NOT in an iframe (which requires popup), and on standalone/webview, use redirect.
+    // For standard mobile browsers (e.g. Chrome on Android, Safari on iOS) and desktop, use popup!
+    if (!isIframe && (isStandalone || isWebView)) {
+      console.log("Standalone PWA or WebView environment detected. Using signInWithRedirect for Google Sign-In.");
       await signInWithRedirect(auth, googleProvider);
       return null;
     } else {
-      console.log("Desktop or iframe environment detected. Using signInWithPopup for Google Sign-In.");
+      console.log("Standard browser (desktop/mobile) or iframe environment detected. Using signInWithPopup for Google Sign-In.");
       const result = await signInWithPopup(auth, googleProvider);
       return result.user;
     }
