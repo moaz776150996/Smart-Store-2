@@ -44,28 +44,29 @@ const isWebView = typeof window !== 'undefined' && (
 // Sign in with Google Popup or Redirect based on environment
 export async function signInWithGoogle() {
   try {
-    // Under stand-alone PWA or Webviews, popups fail / get blocked
-    // or lose standard session context (blank page parent disconnect). 
-    // Therefore, if NOT in an iframe (which requires popup), and on standalone/webview, use redirect.
-    // For standard mobile browsers (e.g. Chrome on Android, Safari on iOS) and desktop, use popup!
-    if (!isIframe && (isStandalone || isWebView)) {
-      console.log("Standalone PWA or WebView environment detected. Using signInWithRedirect for Google Sign-In.");
-      await signInWithRedirect(auth, googleProvider);
-      return null;
-    } else {
-      console.log("Standard browser (desktop/mobile) or iframe environment detected. Using signInWithPopup for Google Sign-In.");
-      const result = await signInWithPopup(auth, googleProvider);
-      return result.user;
-    }
-  } catch (error) {
-    console.error("Error during Google Sign-In:", error);
-    // Fallback: If popup was blocked or failed, attempt redirection as secondary safety net
-    if (error instanceof Error && (
+    // We always attempt signInWithPopup first because it is highly reliable, 
+    // works on standard mobile and desktop browsers, and avoids the third-party 
+    // cookie blocking issue that plagues signInWithRedirect on custom domains.
+    console.log("Attempting signInWithPopup for Google Sign-In...");
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (error: any) {
+    console.warn("signInWithPopup was blocked, closed, or unsupported. Attempting redirection fallback:", error);
+    
+    // Fallback: If popup is blocked, closed, or unsupported in this browser/WebView/PWA,
+    // we use signInWithRedirect as a secondary safety net.
+    const isPopupError = error instanceof Error && (
       error.message.includes('popup') || 
+      error.message.includes('closed') ||
+      error.message.includes('cancelled') ||
       (error as any).code === 'auth/popup-blocked' ||
-      (error as any).code === 'auth/popup-closed-by-user'
-    )) {
-      console.log("Popup action was blocked or closed. Retrying via redirect.");
+      (error as any).code === 'auth/popup-closed-by-user' ||
+      (error as any).code === 'auth/cancelled-popup-request' ||
+      (error as any).code === 'auth/operation-not-supported-in-this-environment'
+    );
+
+    if (isStandalone || isWebView || isPopupError) {
+      console.log("Popup failed or standalone/webview environment detected. Using signInWithRedirect as fallback.");
       await signInWithRedirect(auth, googleProvider);
       return null;
     }
