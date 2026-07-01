@@ -5,37 +5,13 @@ export const HERO_IMAGE = 'https://lh3.googleusercontent.com/aida-public/AB6AXuD
 export const PRODUCTS: Product[] = [
   {
     id: "1",
-    nameEn: "ردمي نوت ١٣",
-    nameAr: "ردمي نوت ١٣",
-    descriptionEn: "جوال من شركة ردمي من الفئة المتوسطة",
-    descriptionAr: "جوال من شركة ردمي من الفئة المتوسطة",
-    price: "500 ر.س",
-    sale_price: "300 ر.س",
-    specs: "١.جوال ردمي 2025 ٢.كاميرا ١٠٨ ميجا بكسل ٣.تخزين ١٢٨ ٤.رام ٨ + ٨ جيجا",
-    category: "جوالات",
-    image: "https://i.postimg.cc/FsYyr9HL/gsmarena-003-2.jpg",
-    images: [
-      "https://i.postimg.cc/FsYyr9HL/gsmarena-003-2.jpg",
-      "https://i.postimg.cc/gkxVzY2n/gsmarena-007-2.jpg",
-      "https://i.postimg.cc/RVW7SMZJ/xiaomi-redmi-note-13-5g-1.jpg"
-    ],
-    labelEn: "Special Offer 🔥",
-    labelAr: "عرض خاص 🔥",
-    isFeatured: true,
-    colorEn: "",
-    colorAr: "",
-    specsEn: [],
-    specsAr: []
-  },
-  {
-    id: "2",
     nameEn: "موتورولا ايدج ٥٠ فيوجن",
     nameAr: "موتورولا ايدج ٥٠ فيوجن",
     descriptionEn: "جوال من شركة موتورولا",
     descriptionAr: "جوال من شركة موتورولا",
-    price: "400 ر.س",
+    price: "500 ريال سعودي",
     sale_price: "",
-    specs: "١.كاميرا ٥٠ ميجا بكسل ٢.تخزين ٢٥ ك٢٥٦ جيجا بايت ٣.رام ٨+٨",
+    specs: "١.كاميرا ٥٠ ميجا بكسل ٢.تخزين ٢٥٦ جيجا بايت ٣.رام ٨+٨",
     category: "جوالات",
     image: "https://i.postimg.cc/fW5Q6qDf/gsmarena-003-(2).jpg",
     images: [
@@ -45,6 +21,26 @@ export const PRODUCTS: Product[] = [
       "https://i.postimg.cc/mZVW0pBw/gsmarena-010-(1).jpg",
       "https://i.postimg.cc/8kwgqXNs/gsmarena-017-(1).jpg"
     ],
+    labelEn: "",
+    labelAr: "",
+    isFeatured: false,
+    colorEn: "",
+    colorAr: "",
+    specsEn: [],
+    specsAr: []
+  },
+  {
+    id: "2",
+    nameEn: "اس 24 التراء",
+    nameAr: "اس 24 التراء",
+    descriptionEn: "جوال من شركة سامسونج",
+    descriptionAr: "جوال من شركة سامسونج",
+    price: "2000﷼سعودي",
+    sale_price: "",
+    specs: "",
+    category: "جوالات",
+    image: "https://i.postimg.cc/FsYyr9HL/gsmarena-003-2.jpg", // Add a fallback placeholder image for S24 Ultra since it was blank in the sheet
+    images: [],
     labelEn: "",
     labelAr: "",
     isFeatured: false,

@@ -17,6 +17,92 @@ let lastFetched = 0;
 let isFetching = false;
 const CACHE_TTL = 5 * 1000; // 5 seconds cache expiration
 
+// Helper to parse robust RFC 4180-compliant CSV with multi-line cells and quotes
+function parseCSV(csvText: string): any[] {
+  const lines: string[] = [];
+  let currentLine = "";
+  let inQuotes = false;
+  
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    const nextChar = csvText[i + 1];
+    
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentLine += '"'; // Escaped quote
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === '\n' || char === '\r') {
+      if (inQuotes) {
+        currentLine += char;
+      } else {
+        if (char === '\r' && nextChar === '\n') {
+          i++;
+        }
+        lines.push(currentLine);
+        currentLine = "";
+      }
+    } else {
+      currentLine += char;
+    }
+  }
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  
+  if (lines.length < 2) return [];
+  
+  // Parse header
+  const headers = parseCSVLine(lines[0]);
+  const result: any[] = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseCSVLine(lines[i]);
+    if (values.length === 0 || (values.length === 1 && values[0] === "")) continue;
+    
+    const obj: any = {};
+    headers.forEach((header, index) => {
+      obj[header.trim()] = values[index] !== undefined ? values[index] : "";
+    });
+    result.push(obj);
+  }
+  
+  return result;
+}
+
+function parseCSVLine(line: string): string[] {
+  const fields: string[] = [];
+  let currentField = "";
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+    
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentField += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',') {
+      if (inQuotes) {
+        currentField += char;
+      } else {
+        fields.push(currentField);
+        currentField = "";
+      }
+    } else {
+      currentField += char;
+    }
+  }
+  fields.push(currentField);
+  return fields;
+}
+
 async function fetchProductsFromSheet(): Promise<SheetResult> {
   if (isFetching) {
     return cachedResult || { success: true, products: PRODUCTS };
@@ -119,6 +205,58 @@ async function fetchProductsFromSheet(): Promise<SheetResult> {
       console.log(`Retrying fetch in ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
+  }
+
+  // If all attempts failed, try to fetch the CSV directly from Google Sheets export URL
+  try {
+    console.log("Apps Script fetch failed. Attempting direct Google Sheets CSV export fetch as a robust fallback...");
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/1742rjytpxN5dzAZbCxeZ4EBF3kcalT6-GGatGcIZ4EU/export?format=csv';
+    const csvResponse = await fetch(csvUrl);
+    if (csvResponse.ok) {
+      const csvText = await csvResponse.text();
+      const rawProducts = parseCSV(csvText);
+      const productsArray = rawProducts.filter((item: any) => {
+        if (!item) return false;
+        const name = String(item.name || item.nameEn || item.nameAr || '').trim();
+        return name.length > 0;
+      }).map((item: any) => {
+        const imageStr = String(item.image || '').trim();
+        const imageUrls = imageStr
+          .split(/[\r\n,\s]+/)
+          .map(s => {
+            let cleaned = s.trim().replace(/^["'`\s\[\(]+|["'`\s\]\)]+$/g, '');
+            if (/^https?:\/\//i.test(cleaned)) {
+              cleaned = cleaned.replace(/^https?:\/\//i, (match) => match.toLowerCase());
+            }
+            return cleaned;
+          })
+          .filter(Boolean)
+          .filter(u => u.toLowerCase().startsWith('http'));
+        
+        return {
+          id: String(item.id || ''),
+          nameEn: item.name || '',
+          nameAr: item.name || '',
+          descriptionEn: item.description || '',
+          descriptionAr: item.description || '',
+          price: String(item.price || '').trim(),
+          sale_price: String(item.sale_price || '').trim(),
+          specs: String(item.specs || '').trim(),
+          category: item.category || 'all',
+          image: imageUrls[0] || '',
+          images: imageUrls
+        };
+      });
+
+      console.log(`Successfully fetched and parsed ${productsArray.length} products from direct CSV export fallback.`);
+      const result = { success: true, products: productsArray };
+      cachedResult = result;
+      lastFetched = Date.now();
+      isFetching = false;
+      return result;
+    }
+  } catch (csvErr: any) {
+    console.error("Direct CSV export fallback failed too:", csvErr);
   }
 
   // If all attempts failed:

@@ -936,13 +936,8 @@ export default function App() {
             };
           });
 
-          // Merge dynamic products with the fallback PRODUCTS so the grid is always filled
-          const dynamicIds = new Set(mapped.map(p => p.id));
-          const combined = [
-            ...mapped,
-            ...PRODUCTS.filter(p => !dynamicIds.has(p.id))
-          ];
-          setProducts(combined);
+          // Set only the products loaded from Google Sheet
+          setProducts(mapped);
         } catch (processErr: any) {
           console.error('Error processing fetched products data:', processErr);
         }
