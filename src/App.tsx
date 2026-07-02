@@ -168,14 +168,7 @@ const formatPhoneNumber = (num: string) => {
 
 export default function App() {
   // --- Persistent States & Preferences ---
-  const [lang, setLang] = useState<Language>(() => {
-    try {
-      const saved = localStorage.getItem('luxe_lang');
-      return (saved === 'ar' || saved === 'en') ? saved : 'ar'; // default to Arabic for local relevance
-    } catch {
-      return 'ar';
-    }
-  });
+  const [lang, setLang] = useState<Language>('ar');
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
@@ -803,7 +796,7 @@ export default function App() {
   const d = DICTIONARY[lang];
 
   // --- Dynamic Products State from Google Sheet database ---
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(false);
   const [sheetError, setSheetError] = useState<{message: string; details?: string; instructions?: string} | null>(null);
 
@@ -842,7 +835,7 @@ export default function App() {
       // 1. First, attempt to fetch from the local server proxy API route
       try {
         console.log('Attempting to fetch products from local API route: /api/products');
-        const res = await fetch('/api/products');
+        const res = await fetch(`/api/products?_t=${Date.now()}`);
         if (!res.ok) {
           throw new Error(`Local API response error: Status ${res.status}`);
         }
@@ -860,7 +853,7 @@ export default function App() {
       if (!data || (data && data.success === false)) {
         try {
           console.log('Falling back to secure direct HTTPS fetch from Google Sheets Apps Script...');
-          const directUrl = 'https://script.google.com/macros/s/AKfycbxJBtIIjNMX_bixahUQWOjZ1zdOD3K_B0_Cn4fJxCfj7VVn2enEbpWrc9K3LDyUwyn2qQ/exec';
+          const directUrl = `https://script.google.com/macros/s/AKfycbxJBtIIjNMX_bixahUQWOjZ1zdOD3K_B0_Cn4fJxCfj7VVn2enEbpWrc9K3LDyUwyn2qQ/exec?_t=${Date.now()}`;
           const res = await fetch(directUrl);
           if (!res.ok) {
             throw new Error(`Direct Google Sheets fetch error: Status ${res.status}`);
@@ -887,13 +880,10 @@ export default function App() {
           const validData = data.filter((item: any) => {
             if (!item) return false;
             const name = String(item.name || item.nameEn || item.nameAr || '').trim();
-            const image = String(item.image || '').trim();
-            return name.length > 0 && image.length > 0;
+            return name.length > 0;
           });
-          const mapped: Product[] = validData.map((item: any, index: number) => {
-            const priceStr = item.price !== undefined && item.price !== null ? String(item.price).trim() : '';
-            const salePriceStr = item.sale_price !== undefined && item.sale_price !== null ? String(item.sale_price).trim() : '';
-            const hasOffer = salePriceStr.length > 0;
+          const mapped = validData.map((item: any, index: number): Product | null => {
+            const name = String(item.name || item.nameEn || item.nameAr || '').trim();
             
             let imageUrls: string[] = [];
             if (Array.isArray(item.images) && item.images.length > 0) {
@@ -909,15 +899,30 @@ export default function App() {
                   }
                   return cleaned;
                 })
-                .filter(Boolean)
-                .filter((u: string) => u.toLowerCase().startsWith('http'));
+                .filter(Boolean);
             }
-            const primaryImage = imageUrls[0] || '';
+
+            // Strictly filter to postimg/postimage links
+            const validImageUrls = imageUrls.filter((u: string) => 
+              u.toLowerCase().startsWith('http') && 
+              (u.toLowerCase().includes('postimg') || u.toLowerCase().includes('postimage'))
+            );
+
+            if (validImageUrls.length === 0) {
+              console.log(`Excluding client product "${name}" because it does not have valid postimg/postimage image URLs.`);
+              return null;
+            }
+
+            const priceStr = item.price !== undefined && item.price !== null ? String(item.price).trim() : '';
+            const salePriceStr = item.sale_price !== undefined && item.sale_price !== null ? String(item.sale_price).trim() : '';
+            const hasOffer = salePriceStr.length > 0;
+            const primaryImage = validImageUrls[0];
             const specsStr = item.specs !== undefined && item.specs !== null ? String(item.specs).trim() : '';
+            
             return {
               id: String(item.id || `sheet-${index + 1}`),
-              nameEn: item.name || '',
-              nameAr: item.name || '',
+              nameEn: name,
+              nameAr: name,
               descriptionEn: item.description || '',
               descriptionAr: item.description || '',
               price: priceStr,
@@ -925,7 +930,7 @@ export default function App() {
               specs: specsStr,
               category: item.category || 'all',
               image: primaryImage,
-              images: imageUrls.length > 0 ? imageUrls : (primaryImage ? [primaryImage] : []),
+              images: validImageUrls,
               labelEn: hasOffer ? 'Special Offer 🔥' : '',
               labelAr: hasOffer ? 'عرض خاص 🔥' : '',
               isFeatured: hasOffer,
@@ -934,7 +939,7 @@ export default function App() {
               specsEn: [],
               specsAr: []
             };
-          });
+          }).filter((p): p is Product => p !== null);
 
           // Set only the products loaded from Google Sheet
           setProducts(mapped);
@@ -1518,18 +1523,7 @@ export default function App() {
               )}
             </button>
 
-            {/* Language Toggle Button */}
-            <button
-              onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-200 text-xs font-semibold font-sans cursor-pointer ${
-                theme === 'dark' 
-                  ? 'bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300' 
-                  : 'bg-black/5 hover:bg-black/10 border-neutral-300 text-neutral-700'
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5 text-amber-500" />
-              <span>{lang === 'ar' ? 'English' : 'العربية'}</span>
-            </button>
+
           </div>
         </div>
 
@@ -1800,23 +1794,7 @@ export default function App() {
 
               {/* Drawer footer (Options shortcuts) */}
               <div className="p-5 border-t border-surface-container-high bg-surface space-y-3.5">
-                {/* Embedded quick Language Switcher inside the drawer */}
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-muted-gray font-medium font-sans">
-                    {lang === 'ar' ? 'تخصيص لغة العرض' : 'Atelier Interface Language'}
-                  </span>
-                  
-                  <button
-                    onClick={() => {
-                      setLang(p => p === 'en' ? 'ar' : 'en');
-                      addToast(lang === 'ar' ? 'Language switched to English' : 'تم تحويل لغة واجهة التطبيق');
-                    }}
-                    className="px-3 py-1.5 bg-[#007d54]/10 hover:bg-[#007d54]/20 text-primary font-bold rounded-full transition-colors flex items-center gap-1.5 cursor-pointer text-[11px]"
-                  >
-                    <Globe className="w-3 h-3" />
-                    <span>{lang === 'en' ? 'العربية' : 'English'}</span>
-                  </button>
-                </div>
+
 
                 {/* Special Offers card link */}
                 <div 
@@ -1877,18 +1855,7 @@ export default function App() {
           </h1>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          {/* Language Toggle Button */}
-          <button 
-            onClick={() => {
-              const nextLang = lang === 'en' ? 'ar' : 'en';
-              setLang(nextLang);
-              addToast(nextLang === 'ar' ? 'تم تفعيل اللغة العربية' : 'English activated');
-            }}
-            className="px-2.5 py-1 rounded-full border border-outline-variant font-sans text-xs font-bold text-charcoal hover:bg-surface-container transition-all active:scale-95 cursor-pointer h-[28px] sm:h-[34px] flex items-center justify-center min-w-[32px] sm:min-w-[38px] select-none"
-            title={lang === 'ar' ? 'Switch to English' : 'تحويل للغة العربية'}
-          >
-            {lang === 'ar' ? 'EN' : 'AR'}
-          </button>
+
 
           {/* Search Button */}
           <button 
@@ -2025,7 +1992,7 @@ export default function App() {
               
               {/* HERO BANNER BLOCK (Spans full width or columns depending on filter) */}
               {selectedCategory === 'all' && (() => {
-                const activeProduct = latestProducts[currentSlideIndex] || products[0] || PRODUCTS[0];
+                const activeProduct = latestProducts[currentSlideIndex] || products[0] || null;
                 if (!activeProduct) {
                   return (
                     <div 
@@ -2137,57 +2104,70 @@ export default function App() {
               })()}
 
               {/* PRODUCTS LISTING */}
-              {(() => {
-                return filteredProducts.map(product => {
-                const labelText = lang === 'ar' ? 'منتج الأسبوع المميز' : 'Product of the Week';
-                const hasSalePrice = product.sale_price && String(product.sale_price).trim().length > 0;
-                
-                return (
-                  <section 
-                    key={product.id}
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      setActiveImageIdx(0);
-                    }}
-                    className="col-span-1 bg-pure-white rounded-card p-4 shadow-soft flex flex-col gap-3 border border-surface-container/20 cursor-pointer hover:scale-[0.99] transition-all"
-                    id={`product-card-${product.id}`}
+              {isLoadingProducts ? (
+                Array.from({ length: 4 }).map((_, idx) => (
+                  <div 
+                    key={`skeleton-${idx}`}
+                    className="col-span-1 bg-pure-white rounded-card p-4 shadow-soft flex flex-col gap-3 border border-surface-container/20 animate-pulse"
                   >
-                    <div className="aspect-square w-full rounded-xl bg-surface overflow-hidden relative">
-                      <img 
-                        alt={lang === 'ar' ? product.nameAr : product.nameEn} 
-                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
-                        src={product.image || undefined}
-                        referrerPolicy="no-referrer"
-                      />
-                      {product.isNew && (
-                        <span className="absolute top-2 left-2 bg-primary text-pure-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                          {lang === 'ar' ? 'جديد' : 'New'}
-                        </span>
-                      )}
-                      {hasSalePrice && (
-                        <span className="absolute top-2 right-2 bg-red-600 text-pure-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                          {lang === 'ar' ? 'عرض خاص' : 'Offer'}
-                        </span>
-                      )}
+                    <div className="aspect-square w-full rounded-xl bg-surface-container-low"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-surface-container-low rounded w-3/4"></div>
+                      <div className="h-3 bg-surface-container-low rounded w-1/2"></div>
                     </div>
-                    <div className={"text-start flex flex-col items-start"}>
-                      <h3 className="font-label-lg text-charcoal truncate w-full">
-                        {lang === 'ar' ? product.nameAr : product.nameEn}
-                      </h3>
-                      <div className="flex items-center gap-1.5 flex-wrap w-full justify-start mt-2">
-                        {renderProductPriceInline(product, "text-primary font-bold text-xs sm:text-sm font-sans")}
+                  </div>
+                ))
+              ) : (() => {
+                return filteredProducts.map(product => {
+                  const labelText = lang === 'ar' ? 'منتج الأسبوع المميز' : 'Product of the Week';
+                  const hasSalePrice = product.sale_price && String(product.sale_price).trim().length > 0;
+                  
+                  return (
+                    <section 
+                      key={product.id}
+                      onClick={() => {
+                        setSelectedProduct(product);
+                        setActiveImageIdx(0);
+                      }}
+                      className="col-span-1 bg-pure-white rounded-card p-4 shadow-soft flex flex-col gap-3 border border-surface-container/20 cursor-pointer hover:scale-[0.99] transition-all"
+                      id={`product-card-${product.id}`}
+                    >
+                      <div className="aspect-square w-full rounded-xl bg-surface overflow-hidden relative">
+                        <img 
+                          alt={lang === 'ar' ? product.nameAr : product.nameEn} 
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
+                          src={product.image || undefined}
+                          referrerPolicy="no-referrer"
+                        />
+                        {product.isNew && (
+                          <span className="absolute top-2 left-2 bg-primary text-pure-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                            {lang === 'ar' ? 'جديد' : 'New'}
+                          </span>
+                        )}
+                        {hasSalePrice && (
+                          <span className="absolute top-2 right-2 bg-red-600 text-pure-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                            {lang === 'ar' ? 'عرض خاص' : 'Offer'}
+                          </span>
+                        )}
                       </div>
-                    </div>
-                    <p className="text-[10px] text-muted-gray uppercase font-bold tracking-tight">
-                      {product.labelEn ? (lang === 'ar' ? product.labelAr : product.labelEn) : labelText}
-                    </p>
-                  </section>
-                );
-              });
+                      <div className={"text-start flex flex-col items-start"}>
+                        <h3 className="font-label-lg text-charcoal truncate w-full">
+                          {lang === 'ar' ? product.nameAr : product.nameEn}
+                        </h3>
+                        <div className="flex items-center gap-1.5 flex-wrap w-full justify-start mt-2">
+                          {renderProductPriceInline(product, "text-primary font-bold text-xs sm:text-sm font-sans")}
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-gray uppercase font-bold tracking-tight">
+                        {product.labelEn ? (lang === 'ar' ? product.labelAr : product.labelEn) : labelText}
+                      </p>
+                    </section>
+                  );
+                });
               })()}
 
               {/* Dynamic Empty Grid Checker if filtered */}
-              {filteredProducts.length === 0 && (
+              {!isLoadingProducts && filteredProducts.length === 0 && (
                 <div className="col-span-4 text-center py-20 space-y-4">
                   <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto text-muted-gray">
                     <Search className="w-8 h-8" />

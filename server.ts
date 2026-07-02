@@ -110,170 +110,182 @@ async function fetchProductsFromSheet(): Promise<SheetResult> {
   isFetching = true;
   console.log("Fetching products from Google Sheets Apps Script with robust retry...");
   
-  let lastError: any = null;
-  let attempts = 3;
-  
-  for (let attempt = 1; attempt <= attempts; attempt++) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 seconds timeout
-      
-      const response = await fetch('https://script.google.com/macros/s/AKfycbxJBtIIjNMX_bixahUQWOjZ1zdOD3K_B0_Cn4fJxCfj7VVn2enEbpWrc9K3LDyUwyn2qQ/exec', {
-        signal: controller.signal,
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-      });
-      clearTimeout(timeoutId);
-
-      const contentType = response.headers.get('content-type') || '';
-      const text = await response.text();
-
-      if (response.ok && (contentType.includes('application/json') || text.trim().startsWith('[') || text.trim().startsWith('{'))) {
-        try {
-          const data = JSON.parse(text);
-          const rawProducts = Array.isArray(data) ? data : (data.data || data.products || []);
-          
-          const productsArray = rawProducts.filter((item: any) => {
-            if (!item) return false;
-            const name = String(item.name || item.nameEn || item.nameAr || '').trim();
-            return name.length > 0;
-          }).map((item: any) => {
-            const imageStr = String(item.image || '').trim();
-            const imageUrls = imageStr
-              .split(/[\r\n,\s]+/)
-              .map(s => {
-                let cleaned = s.trim().replace(/^["'`\s\[\(]+|["'`\s\]\)]+$/g, '');
-                if (/^https?:\/\//i.test(cleaned)) {
-                  cleaned = cleaned.replace(/^https?:\/\//i, (match) => match.toLowerCase());
-                }
-                return cleaned;
-              })
-              .filter(Boolean)
-              .filter(u => u.toLowerCase().startsWith('http'));
-            
-            return {
-              ...item,
-              image: imageUrls[0] || '',
-              images: imageUrls
-            };
-          });
-
-          console.log(`Successfully fetched and filtered ${productsArray.length} active products from Google Sheet`);
-          const result = { success: true, products: productsArray };
-          cachedResult = result;
-          lastFetched = Date.now();
-          return result;
-        } catch (e: any) {
-          console.log('Failed to parse sheet JSON:', e);
-          lastError = { error: "JSON Parse Error", details: e?.message || String(e) };
-        }
-      } else {
-        console.log(`Apps Script returned non-JSON/error response (Attempt ${attempt}/${attempts}), content-type:`, contentType, 'Status:', response.status);
+  try {
+    let lastError: any = null;
+    let attempts = 3;
+    
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 seconds timeout
         
-        let extractedMsg = "";
-        const match = text.match(/font-family:monospace[^>]*>([\s\S]*?)<\/div>/i);
-        if (match) {
-          extractedMsg = match[1].replace(/&quot;/g, '"').trim();
-        } else if (text.includes("TypeError:")) {
-          const typeErrorIdx = text.indexOf("TypeError:");
-          const endIdx = text.indexOf("</div>", typeErrorIdx);
-          if (typeErrorIdx !== -1 && endIdx !== -1) {
-            extractedMsg = text.substring(typeErrorIdx, endIdx).replace(/&quot;/g, '"').trim();
+        const response = await fetch(`https://script.google.com/macros/s/AKfycbxJBtIIjNMX_bixahUQWOjZ1zdOD3K_B0_Cn4fJxCfj7VVn2enEbpWrc9K3LDyUwyn2qQ/exec?_t=${Date.now()}`, {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
           }
-        }
+        });
+        clearTimeout(timeoutId);
 
+        const contentType = response.headers.get('content-type') || '';
+        const text = await response.text();
+
+        if (response.ok && (contentType.includes('application/json') || text.trim().startsWith('[') || text.trim().startsWith('{'))) {
+          try {
+            const data = JSON.parse(text);
+            const rawProducts = Array.isArray(data) ? data : (data.data || data.products || []);
+            
+            const productsArray = rawProducts.map((item: any) => {
+              if (!item) return null;
+              const name = String(item.name || item.nameEn || item.nameAr || '').trim();
+              if (name.length === 0) return null;
+
+              const imageStr = String(item.image || '').trim();
+              const imageUrls = imageStr
+                .split(/[\r\n,\s]+/)
+                .map(s => {
+                  let cleaned = s.trim().replace(/^["'`\s\[\(]+|["'`\s\]\)]+$/g, '');
+                  if (/^https?:\/\//i.test(cleaned)) {
+                    cleaned = cleaned.replace(/^https?:\/\//i, (match) => match.toLowerCase());
+                  }
+                  return cleaned;
+                })
+                .filter(Boolean)
+                .filter(u => u.toLowerCase().startsWith('http') && (u.toLowerCase().includes('postimg') || u.toLowerCase().includes('postimage')));
+
+              if (imageUrls.length === 0) {
+                console.log(`Excluding product "${name}" because it does not have valid postimg/postimage image URLs.`);
+                return null;
+              }
+              
+              return {
+                ...item,
+                image: imageUrls[0],
+                images: imageUrls
+              };
+            }).filter(Boolean);
+
+            console.log(`Successfully fetched and filtered ${productsArray.length} active products from Google Sheet`);
+            const result = { success: true, products: productsArray };
+            cachedResult = result;
+            lastFetched = Date.now();
+            return result;
+          } catch (e: any) {
+            console.log('Failed to parse sheet JSON:', e);
+            lastError = { error: "JSON Parse Error", details: e?.message || String(e) };
+          }
+        } else {
+          console.log(`Apps Script returned non-JSON/error response (Attempt ${attempt}/${attempts}), content-type:`, contentType, 'Status:', response.status);
+          
+          let extractedMsg = "";
+          const match = text.match(/font-family:monospace[^>]*>([\s\S]*?)<\/div>/i);
+          if (match) {
+            extractedMsg = match[1].replace(/&quot;/g, '"').trim();
+          } else if (text.includes("TypeError:")) {
+            const typeErrorIdx = text.indexOf("TypeError:");
+            const endIdx = text.indexOf("</div>", typeErrorIdx);
+            if (typeErrorIdx !== -1 && endIdx !== -1) {
+              extractedMsg = text.substring(typeErrorIdx, endIdx).replace(/&quot;/g, '"').trim();
+            }
+          }
+
+          lastError = {
+            error: "Google Sheets Apps Script TypeError",
+            details: extractedMsg || `Status ${response.status}: Expected JSON but received ${contentType.split(';')[0]}.`,
+            instructions: "setHeaders is not a function"
+          };
+        }
+      } catch (err: any) {
+        console.log(`Failed to fetch from Google Sheet Apps Script (Attempt ${attempt}/${attempts}):`, err?.message || String(err));
         lastError = {
-          error: "Google Sheets Apps Script TypeError",
-          details: extractedMsg || `Status ${response.status}: Expected JSON but received ${contentType.split(';')[0]}.`,
+          error: "Failed to connect to Google Sheets Apps Script",
+          details: err?.message || String(err),
           instructions: "setHeaders is not a function"
         };
       }
-    } catch (err: any) {
-      console.log(`Failed to fetch from Google Sheet Apps Script (Attempt ${attempt}/${attempts}):`, err?.message || String(err));
-      lastError = {
-        error: "Failed to connect to Google Sheets Apps Script",
-        details: err?.message || String(err),
-        instructions: "setHeaders is not a function"
-      };
+
+      if (attempt < attempts) {
+        // Small exponential backoff before retry (e.g., 300ms, 600ms)
+        const delay = attempt * 300;
+        console.log(`Retrying fetch in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
 
-    if (attempt < attempts) {
-      // Small exponential backoff before retry (e.g., 300ms, 600ms)
-      const delay = attempt * 300;
-      console.log(`Retrying fetch in ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+    // If all attempts failed, try to fetch the CSV directly from Google Sheets export URL
+    try {
+      console.log("Apps Script fetch failed. Attempting direct Google Sheets CSV export fetch as a robust fallback...");
+      const csvUrl = 'https://docs.google.com/spreadsheets/d/1742rjytpxN5dzAZbCxeZ4EBF3kcalT6-GGatGcIZ4EU/export?format=csv';
+      const csvResponse = await fetch(csvUrl);
+      if (csvResponse.ok) {
+        const csvText = await csvResponse.text();
+        const rawProducts = parseCSV(csvText);
+        const productsArray = rawProducts.map((item: any) => {
+          if (!item) return null;
+          const name = String(item.name || item.nameEn || item.nameAr || '').trim();
+          if (name.length === 0) return null;
+
+          const imageStr = String(item.image || '').trim();
+          const imageUrls = imageStr
+            .split(/[\r\n,\s]+/)
+            .map(s => {
+              let cleaned = s.trim().replace(/^["'`\s\[\(]+|["'`\s\]\)]+$/g, '');
+              if (/^https?:\/\//i.test(cleaned)) {
+                cleaned = cleaned.replace(/^https?:\/\//i, (match) => match.toLowerCase());
+              }
+              return cleaned;
+            })
+            .filter(Boolean)
+            .filter(u => u.toLowerCase().startsWith('http') && (u.toLowerCase().includes('postimg') || u.toLowerCase().includes('postimage')));
+          
+          if (imageUrls.length === 0) {
+            console.log(`Excluding fallback product "${name}" because it does not have valid postimg/postimage image URLs.`);
+            return null;
+          }
+
+          return {
+            id: String(item.id || ''),
+            nameEn: item.name || '',
+            nameAr: item.name || '',
+            descriptionEn: item.description || '',
+            descriptionAr: item.description || '',
+            price: String(item.price || '').trim(),
+            sale_price: String(item.sale_price || '').trim(),
+            specs: String(item.specs || '').trim(),
+            category: item.category || 'all',
+            image: imageUrls[0],
+            images: imageUrls
+          };
+        }).filter(Boolean);
+
+        console.log(`Successfully fetched and parsed ${productsArray.length} products from direct CSV export fallback.`);
+        const result = { success: true, products: productsArray };
+        cachedResult = result;
+        lastFetched = Date.now();
+        return result;
+      }
+    } catch (csvErr: any) {
+      console.error("Direct CSV export fallback failed too:", csvErr);
     }
-  }
 
-  // If all attempts failed, try to fetch the CSV directly from Google Sheets export URL
-  try {
-    console.log("Apps Script fetch failed. Attempting direct Google Sheets CSV export fetch as a robust fallback...");
-    const csvUrl = 'https://docs.google.com/spreadsheets/d/1742rjytpxN5dzAZbCxeZ4EBF3kcalT6-GGatGcIZ4EU/export?format=csv';
-    const csvResponse = await fetch(csvUrl);
-    if (csvResponse.ok) {
-      const csvText = await csvResponse.text();
-      const rawProducts = parseCSV(csvText);
-      const productsArray = rawProducts.filter((item: any) => {
-        if (!item) return false;
-        const name = String(item.name || item.nameEn || item.nameAr || '').trim();
-        return name.length > 0;
-      }).map((item: any) => {
-        const imageStr = String(item.image || '').trim();
-        const imageUrls = imageStr
-          .split(/[\r\n,\s]+/)
-          .map(s => {
-            let cleaned = s.trim().replace(/^["'`\s\[\(]+|["'`\s\]\)]+$/g, '');
-            if (/^https?:\/\//i.test(cleaned)) {
-              cleaned = cleaned.replace(/^https?:\/\//i, (match) => match.toLowerCase());
-            }
-            return cleaned;
-          })
-          .filter(Boolean)
-          .filter(u => u.toLowerCase().startsWith('http'));
-        
-        return {
-          id: String(item.id || ''),
-          nameEn: item.name || '',
-          nameAr: item.name || '',
-          descriptionEn: item.description || '',
-          descriptionAr: item.description || '',
-          price: String(item.price || '').trim(),
-          sale_price: String(item.sale_price || '').trim(),
-          specs: String(item.specs || '').trim(),
-          category: item.category || 'all',
-          image: imageUrls[0] || '',
-          images: imageUrls
-        };
-      });
-
-      console.log(`Successfully fetched and parsed ${productsArray.length} products from direct CSV export fallback.`);
-      const result = { success: true, products: productsArray };
-      cachedResult = result;
-      lastFetched = Date.now();
-      isFetching = false;
-      return result;
+    // If all attempts failed:
+    if (cachedResult && cachedResult.success) {
+      console.log("All fetch attempts failed. Falling back to fresh server cache.");
+      return cachedResult;
     }
-  } catch (csvErr: any) {
-    console.error("Direct CSV export fallback failed too:", csvErr);
-  }
 
-  // If all attempts failed:
-  isFetching = false;
-  if (cachedResult && cachedResult.success) {
-    console.log("All fetch attempts failed. Falling back to fresh server cache.");
-    return cachedResult;
+    console.log("All fetch attempts failed and no server cache exists. Falling back to default static products list.");
+    return {
+      success: true,
+      products: PRODUCTS,
+      error: lastError?.error,
+      details: lastError?.details,
+      instructions: lastError?.instructions
+    };
+  } finally {
+    isFetching = false;
   }
-
-  console.log("All fetch attempts failed and no server cache exists. Falling back to default static products list.");
-  return {
-    success: true, // We set success to true because we provide valid products fallback!
-    products: PRODUCTS,
-    error: lastError?.error,
-    details: lastError?.details,
-    instructions: lastError?.instructions
-  };
 }
 
 async function startServer() {
@@ -285,6 +297,10 @@ async function startServer() {
 
   // API Route: Fetch products with caching layer (Stale-While-Revalidate)
   app.get("/api/products", async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     const now = Date.now();
     
     // 1. If cache is fresh (< CACHE_TTL), return it instantly!
