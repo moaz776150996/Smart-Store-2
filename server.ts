@@ -15,7 +15,7 @@ interface SheetResult {
 let cachedResult: SheetResult | null = null;
 let lastFetched = 0;
 let isFetching = false;
-const CACHE_TTL = 5 * 1000; // 5 seconds cache expiration
+const CACHE_TTL = 3 * 60 * 1000; // 3 minutes cache expiration (high performance)
 
 // Helper to parse robust RFC 4180-compliant CSV with multi-line cells and quotes
 function parseCSV(csvText: string): any[] {
@@ -117,7 +117,7 @@ async function fetchProductsFromSheet(): Promise<SheetResult> {
     for (let attempt = 1; attempt <= attempts; attempt++) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 seconds timeout
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
         
         const response = await fetch(`https://script.google.com/macros/s/AKfycbxJBtIIjNMX_bixahUQWOjZ1zdOD3K_B0_Cn4fJxCfj7VVn2enEbpWrc9K3LDyUwyn2qQ/exec?_t=${Date.now()}`, {
           signal: controller.signal,
@@ -303,25 +303,27 @@ async function startServer() {
     
     const now = Date.now();
     
-    // 1. If cache is fresh (< CACHE_TTL), return it instantly!
-    if (cachedResult && cachedResult.success && (now - lastFetched < CACHE_TTL)) {
-      console.log("Returning fresh cached products list instantly.");
+    // 1. If we have cached products (whether fresh or stale), serve them INSTANTLY!
+    if (cachedResult && cachedResult.success && cachedResult.products && cachedResult.products.length > 0) {
+      // If the cache is stale (> CACHE_TTL) and we aren't already fetching, trigger background revalidation
+      if (now - lastFetched > CACHE_TTL && !isFetching) {
+        console.log(`Cache stale by ${Math.round((now - lastFetched - CACHE_TTL) / 1000)}s. Triggering background refresh...`);
+        fetchProductsFromSheet().catch(err => {
+          console.error("Background fetch failed:", err);
+        });
+      }
       return res.json(cachedResult.products);
     }
 
-    // Otherwise, fetch synchronously (first load or expired cache)
-    console.log("Cache expired or empty. Fetching synchronously...");
+    // 2. If NO cache exists (e.g. first request on cold start before background pre-warm completes):
+    console.log("No server cache exists yet. Fetching synchronously on boot...");
     const result = await fetchProductsFromSheet();
     
-    if (result.success) {
+    if (result.success && result.products && result.products.length > 0) {
       return res.json(result.products);
     } else {
-      // If synchronous fetch failed but we have stale cache, fallback to it
-      if (cachedResult && cachedResult.success && cachedResult.products) {
-        console.log("Synchronous fetch failed. Falling back to stale cached products.");
-        return res.json(cachedResult.products);
-      }
-      return res.json(result);
+      console.log("Failed to fetch Google Sheet on boot. Returning static fallback products to prevent blank pages.");
+      return res.json(PRODUCTS);
     }
   });
 
