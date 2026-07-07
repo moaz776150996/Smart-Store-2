@@ -1025,29 +1025,58 @@ export default function App() {
   const parseSpecsToList = (specsStr: string | undefined | null): string[] => {
     if (!specsStr) return [];
     
-    // Replace standard list numbers at start of lines or words with line breaks
-    // For example: "1. spec 2. spec" or "١. spec ٢. spec" or "1- spec 2- spec"
-    let normalized = specsStr;
+    const trimmedInput = specsStr.trim();
+    if (!trimmedInput) return [];
+
+    // Find all number markers (e.g., 1. or ١. or 1- or ١- or 1) or ١))
+    // We use a regex that matches numbers followed by a delimiter like dot, dash, or parenthesis
+    const markerRegex = /(?:^|\s+)((?:[0-9]+|[٠-٩]+)[\.\-\)]\s*)/g;
+    let match;
+    const matches: { start: number; end: number; text: string }[] = [];
     
-    // Replace numbering like "1.", "1-", "1)" or Arabic "١.", "١-", "١)" at the beginning of segments
-    // We add a line break before any number sequence to split it
-    normalized = normalized.replace(/(\s+|^)([0-9]+|[٠-٩]+)[\.\-\)]\s*/g, '\n');
+    while ((match = markerRegex.exec(trimmedInput)) !== null) {
+      const markerText = match[1];
+      // Mathematically guaranteed index of markerText inside trimmedInput
+      const markerStart = match.index + match[0].indexOf(markerText);
+      matches.push({
+        start: markerStart,
+        end: markerStart + markerText.length,
+        text: markerText
+      });
+    }
+
+    if (matches.length === 0) {
+      // No number markers found. Split by newlines only, preserving non-numeric specs if any exist on new lines
+      return trimmedInput
+        .split(/\r?\n/)
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    const items: string[] = [];
     
-    // Replace other bullet styles with newlines
-    normalized = normalized.replace(/[\u2022\u2023\u25E6\u2043\u2219•*]+/g, '\n');
-    
-    // Split by newlines, semicolons (English/Arabic), commas (English/Arabic), or isolated dashes " - "
-    // Note: avoid splitting dashes inside words like "Type-C" or "S-Class", so only " - " with space(s) around it
-    const items = normalized.split(/\r?\n|[;؛]|[,،]|\s+\-\s+|\s+\–\s+/);
-    
-    return items
-      .map(item => {
-        let trimmed = item.trim();
-        // Remove any remaining leading bullet points, dashes, numbers, dots, or symbols from the start of the spec item
-        trimmed = trimmed.replace(/^[-*•\s\d\.٠-٩\)\-\/]+/, '').trim();
-        return trimmed;
-      })
-      .filter(Boolean);
+    // 1. Extract any text before the first marker
+    if (matches[0].start > 0) {
+      const leadingText = trimmedInput.substring(0, matches[0].start).trim();
+      if (leadingText) {
+        items.push(leadingText);
+      }
+    }
+
+    // 2. Extract items between markers
+    for (let i = 0; i < matches.length; i++) {
+      const currentMatch = matches[i];
+      const nextMatch = matches[i + 1];
+      const startPos = currentMatch.end; // DO NOT include the marker itself in the store!
+      const endPos = nextMatch ? nextMatch.start : trimmedInput.length;
+      
+      const itemText = trimmedInput.substring(startPos, endPos).trim();
+      if (itemText) {
+        items.push(itemText);
+      }
+    }
+
+    return items;
   };
 
   // Helper: render product price exactly as requested
